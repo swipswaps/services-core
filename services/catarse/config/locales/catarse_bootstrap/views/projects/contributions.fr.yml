@@ -1,7 +1,7 @@
 fr:
   projects:
     contributions:
-      no_estimate: "Indisponible"
+      no_estimate: "Indisponibles"
       you_selected: "Vous avez choisi celle-ci!"
       contribute_text:
         credits_tab: Mes crédits

@@ -4,7 +4,7 @@ fr:
       no_estimate: "Indisponibles"
       you_selected: "Vous avez choisi celle-ci!"
       contribute_text:
-        credits_tab: Mess crédits
+        credits_tab: Mess crédiits
       checkout:
         no_credits: "Vous ne possédez pas suffisamment de crédits pour réaliser ce don."
         success:  "Votre don a été réalisé avec succès. Merci beaucoup !"

@@ -14,7 +14,7 @@ en:
         flex: New contributors
         sub: New subscribers
       new_backers_explanation:
-        aon: contributors who had never contributioned a project in Catarse
+        aon: contributors who have never contributioned a project in Catarse
         flex: contributors who had never contributioned a project in Catarse
         sub: subscribers who had never contributioned a project in Catarse
       recurring_backers:

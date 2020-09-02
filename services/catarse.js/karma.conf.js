@@ -46,7 +46,15 @@ module.exports = (config) => {
         customLaunchers: {
             MyHeadlessChrome: {
                 base: 'ChromeHeadless',
-                flags: ['--headless', '--no-sandbox']
+                flags: [
+                    '--no-sandbox',
+                    '--remote-debugging-port=9222',
+                    '--enable-logging',
+                    '--disable-background-timer-throttling',
+                    '--disable-renderer-backgrounding',
+                    '--proxy-bypass-list=*',
+                    '--proxy-server=\'direct://\''
+                ]
             }
         },
         singleRun: true

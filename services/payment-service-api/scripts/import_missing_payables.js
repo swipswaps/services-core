@@ -37,6 +37,7 @@ const importMissingPayablesForSingleCatalogPayment = async (catalogPayment, paga
   try {
     console.log('###########', 'importing missing payables for transaction_id:', catalogPayment.gateway_id, '##############')
     const transaction = await pagarmeClient.transactions.find({ id: catalogPayment.gateway_id })
+    console.log('transaction', transaction);
     const payables = await pagarmeClient.payables.find({ transactionId: catalogPayment.gateway_id });
 
     await dalCtx.updateGatewayDataOnPayment(catalogPayment.id, { transaction, payables })

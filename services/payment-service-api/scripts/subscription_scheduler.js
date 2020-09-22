@@ -159,22 +159,6 @@ const recursive_calls = () => {
         }, (process.env.SET_INTERVAL || 60000));
     };
 
-<<<<<<< HEAD
-=======
-    const missingPayables = () => {
-        setTimeout(async () => {
-            try {
-                console.log('Importing missing payables')
-                const client = await pool.connect();
-                importMissingPayables(client).then(() => { missingPayables() })
-            } catch (e) {
-                handleError(e);
-                console.log(e);
-            }
-        }, 300000) // 5 minutes
-    }
-
->>>>>>> 172b6f533... Fix subscription missing payables routine
     rec_charge();
     rec_errors_charge();
     refuse_expired();

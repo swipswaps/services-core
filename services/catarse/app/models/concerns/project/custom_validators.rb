@@ -16,7 +16,7 @@ module Project::CustomValidators
 
     def self.get_routes
       @@mapped_routes ||= @@routes.each_with_object(Set.new) do |item, memo|
-        memo << Regexp.last_match(1) if item.path.spec.to_s.match(/^\/([\w]+)\S/)
+        memo << Regexp.last_match(1) if item.path.spec.to_s.gsub('(/:locale)', '').match(/^\/([\w]+)\S/)
       end
     end
 
@@ -35,7 +35,6 @@ module Project::CustomValidators
           I18n.t('activerecord.errors.models.project.attributes.rewards.at_least_one')
         )
       end
-    end    
-
+    end
   end
 end

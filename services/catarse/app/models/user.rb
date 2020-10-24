@@ -1,10 +1,10 @@
 # coding: utf-8
 # frozen_string_literal: true
 
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include I18n::Alchemy
   acts_as_token_authenticatable
-  include User::OmniauthHandler
+  include Users::OmniauthHandler
   include Shared::CommonWrapper
   has_notifications
   # Include default devise modules. Others available are:
@@ -21,13 +21,6 @@ class User < ActiveRecord::Base
 
   delegate :address_city, :country_id, :state_id, :phone_number, :country, :state, :address_complement, :address_neighbourhood, :address_zip_code, :address_street, :address_number, :address_state, to: :address, allow_nil: true
 
-  # FIXME: Please bitch...
-  attr_accessible :email, :password, :address_attributes, :password_confirmation, :remember_me, :name, :permalink,
-                  :image_url, :uploaded_image, :newsletter, :cpf, :state_inscription, :locale, :twitter, :facebook_link, :other_link, :moip_login, :deactivated_at, :reactivate_token,
-                  :bank_account_attributes, :country_id, :zero_credits, :links_attributes, :about_html, :cover_image, :category_followers_attributes, :category_follower_ids,
-                  :subscribed_to_project_posts, :subscribed_to_new_followers, :subscribed_to_friends_contributions, :whitelisted_at, :confirmed_email_at, :public_name,
-                  :birth_date, :account_type, :mail_marketing_users_attributes
-
   attr_accessor :publishing_project, :publishing_user_settings, :publishing_user_about, :reseting_password
 
   mount_uploader :uploaded_image, UserUploader
@@ -39,14 +32,13 @@ class User < ActiveRecord::Base
   validates :birth_date, presence: true, if: ->(user) { user.publishing_user_settings && user.account_type == 'pf' }
 
   validates_presence_of :email
-  validates_uniqueness_of :email, allow_blank: true, if: :email_changed?, message: I18n.t('activerecord.errors.models.user.attributes.email.taken')
+  validates_uniqueness_of :email, allow_blank: true, if: :will_save_change_to_email?, message: I18n.t('activerecord.errors.models.user.attributes.email.taken')
   validates_uniqueness_of :permalink, allow_nil: true
-  validates :permalink, exclusion: { in: %w[api cdn secure suporte],
-                                     message: 'Endereço já está em uso.' }
+  validates :permalink, exclusion: { in: %w[api cdn secure suporte], message: 'Endereço já está em uso.' }
   validates_format_of :email,
     with:  /\A[a-zA-Z0-9!#\\&$%'*+=?^`{}|~_-](\.?[a-zA-Z0-9\\!#$&%'*+=?^`{}|~_-]){0,}@[a-zA-Z0-9]+\.(?!-)([a-zA-Z0-9]?((-?[a-zA-Z0-9]+)+\.(?!-))){0,}[a-zA-Z0-9]{2,8}\z/,
     allow_blank: true,
-    if: :email_changed?
+    if: :will_save_change_to_email?
 
   validates_presence_of :password, if: :password_required?
   validates_confirmation_of :password, if: :password_confirmation_required?
@@ -57,7 +49,7 @@ class User < ActiveRecord::Base
   validate :owner_document_validation
   validate :address_fields_validation
 
-  belongs_to :address
+  belongs_to :address, optional: true
   has_one :user_total
   has_one :user_credit
   has_one :bank_account, dependent: :destroy
@@ -68,6 +60,7 @@ class User < ActiveRecord::Base
   has_many :follows, class_name: 'UserFollow'
   has_many :credit_cards
   has_many :authorizations
+  has_many :oauth_providers, through: :authorizations
   has_many :contributions
   has_many :contribution_details
   has_many :reminders, class_name: 'ProjectReminder', inverse_of: :user
@@ -275,7 +268,7 @@ class User < ActiveRecord::Base
   end
 
   def change_locale(language)
-    update_attributes locale: language if locale != language
+    update(locale: language) if locale != language
   end
 
   def reactivate
@@ -284,7 +277,7 @@ class User < ActiveRecord::Base
 
   def deactivate
     notify(:user_deactivate)
-    update_attributes deactivated_at: Time.current, reactivate_token: Devise.friendly_token
+    update(deactivated_at: Time.current, reactivate_token: Devise.friendly_token)
     contributions.update_all(anonymous: true)
     cancel_all_subscriptions
   end
@@ -312,7 +305,7 @@ class User < ActiveRecord::Base
                     join projects on projects.id = contributions.project_id')
            .where("contributions.is_confirmed
                         and not contributions.anonymous
-                        and payments.paid_at > CURRENT_TIMESTAMP - '1 day'::interval and projects.id = ?", project.id).uniq
+                        and payments.paid_at > CURRENT_TIMESTAMP - '1 day'::interval and projects.id = ?", project.id).distinct
   end
 
   def projects_backed_by_friends_in_last_day
@@ -321,7 +314,7 @@ class User < ActiveRecord::Base
             join payments on payments.contribution_id = contributions.id')
            .where('contributions.is_confirmed and not contributions.anonymous')
            .where("payments.paid_at > CURRENT_TIMESTAMP - '1 day'::interval
-                  and user_follows.user_id = ?", id).uniq
+                  and user_follows.user_id = ?", id).distinct
   end
 
   def has_no_confirmed_contribution_to_project(project_id)
@@ -526,4 +519,3 @@ class User < ActiveRecord::Base
     end
   end
 end
-
